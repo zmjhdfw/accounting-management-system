@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "会计管理系统",
+    "version": "1.0.0"
+  },
+  "database": {
+    "name": "accounting.db",
+    "version": 1
+  },
+  "sync": {
+    "enabled": false,
+    "serverUrl": "",
+    "interval": 300
+  },
+  "autoSave": {
+    "enabled": true,
+    "interval": 30
+  }
+}

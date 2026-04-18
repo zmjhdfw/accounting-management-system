@@ -1,0 +1,20 @@
+# 数据库配置
+database:
+  # SQLite配置
+  sqlite:
+    path: "./data/accounting.db"
+    
+  # PostgreSQL配置（可选）
+  postgresql:
+    host: "localhost"
+    port: 5432
+    database: "accounting"
+    user: "postgres"
+    password: ""
+    
+  # 连接池配置
+  pool:
+    size: 5
+    max_overflow: 10
+    recycle: 3600
+    echo: false

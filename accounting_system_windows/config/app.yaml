@@ -1,0 +1,40 @@
+# 应用配置
+app:
+  name: "会计管理系统"
+  version: "1.0.0"
+  language: "zh_CN"
+  
+# 数据库配置
+database:
+  type: "sqlite"
+  path: "./data/accounting.db"
+  pool_size: 5
+  max_overflow: 10
+  
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/app.log"
+  max_size: 10485760  # 10MB
+  backup_count: 5
+  
+# 自动保存配置
+auto_save:
+  enabled: true
+  interval: 30  # 秒
+  operations:
+    - "voucher_create_draft"
+    - "voucher_update_draft"
+    - "account_create"
+    - "account_update"
+    
+# 确认对话框配置
+confirmation:
+  operations:
+    - "voucher_delete"
+    - "account_delete"
+    - "voucher_submit"
+    - "voucher_review"
+    - "data_restore"
+    - "data_import"
