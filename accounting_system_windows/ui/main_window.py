@@ -4,11 +4,13 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QMenuBar, QMenu, QToolBar, QStatusBar, QTabWidget,
-    QMessageBox, QLabel
+    QMessageBox, QLabel, QDialog, QLineEdit, QPushButton
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
 from models.user import User
+from services.user_service import UserService
+from infrastructure.database import get_db
 from infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -84,6 +86,31 @@ class MainWindow(QMainWindow):
         report_action = QAction('报表查询', self)
         report_action.triggered.connect(lambda: self.switch_tab(2))
         view_menu.addAction(report_action)
+        
+        # 用户菜单
+        user_menu = menubar.addMenu('用户(&U)')
+        
+        account_info_action = QAction('账户信息', self)
+        account_info_action.triggered.connect(self.on_account_info)
+        user_menu.addAction(account_info_action)
+        
+        edit_profile_action = QAction('编辑资料', self)
+        edit_profile_action.triggered.connect(self.on_edit_profile)
+        user_menu.addAction(edit_profile_action)
+        
+        change_password_action = QAction('修改密码', self)
+        change_password_action.triggered.connect(self.on_change_password)
+        user_menu.addAction(change_password_action)
+        
+        user_menu.addSeparator()
+        
+        delete_account_action = QAction('注销账户', self)
+        delete_account_action.triggered.connect(self.on_delete_account)
+        user_menu.addAction(delete_account_action)
+        
+        logout_action = QAction('退出登录', self)
+        logout_action.triggered.connect(self.on_logout)
+        user_menu.addAction(logout_action)
         
         # 系统菜单
         system_menu = menubar.addMenu('系统(&S)')
@@ -179,6 +206,161 @@ class MainWindow(QMainWindow):
     def on_restore(self):
         """数据恢复"""
         QMessageBox.information(self, '提示', '数据恢复功能开发中...')
+    
+    def on_account_info(self):
+        """账户信息"""
+        QMessageBox.information(self, '账户信息',
+            f'用户名: {self.current_user.username}\n'
+            f'昵称: {self.current_user.real_name or "未设置"}\n'
+            f'邮箱: {self.current_user.email or "未设置"}')
+    
+    def on_edit_profile(self):
+        """编辑资料"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle('编辑资料')
+        dialog.setFixedSize(400, 250)
+        
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+        
+        # 用户名（只读）
+        layout.addWidget(QLabel('用户名:'))
+        username_edit = QLineEdit(self.current_user.username)
+        username_edit.setReadOnly(True)
+        layout.addWidget(username_edit)
+        
+        # 昵称
+        layout.addWidget(QLabel('昵称:'))
+        nickname_edit = QLineEdit(self.current_user.real_name or '')
+        layout.addWidget(nickname_edit)
+        
+        # 邮箱
+        layout.addWidget(QLabel('邮箱:'))
+        email_edit = QLineEdit(self.current_user.email or '')
+        layout.addWidget(email_edit)
+        
+        # 按钮
+        button_layout = QHBoxLayout()
+        save_btn = QPushButton('保存')
+        cancel_btn = QPushButton('取消')
+        button_layout.addWidget(save_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
+        
+        def on_save():
+            try:
+                session = get_db()
+                user_service = UserService(session)
+                success, _, message = user_service.update_user(
+                    self.current_user.id,
+                    real_name=nickname_edit.text(),
+                    email=email_edit.text()
+                )
+                if success:
+                    session.commit()
+                    self.current_user.real_name = nickname_edit.text()
+                    self.current_user.email = email_edit.text()
+                    QMessageBox.information(dialog, '成功', '资料更新成功')
+                    dialog.accept()
+                else:
+                    session.rollback()
+                    QMessageBox.warning(dialog, '失败', message)
+            except Exception as e:
+                QMessageBox.critical(dialog, '错误', str(e))
+        
+        save_btn.clicked.connect(on_save)
+        cancel_btn.clicked.connect(dialog.reject)
+        
+        dialog.exec()
+    
+    def on_change_password(self):
+        """修改密码"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle('修改密码')
+        dialog.setFixedSize(300, 200)
+        
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+        
+        layout.addWidget(QLabel('旧密码:'))
+        old_pass = QLineEdit()
+        old_pass.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addWidget(old_pass)
+        
+        layout.addWidget(QLabel('新密码:'))
+        new_pass = QLineEdit()
+        new_pass.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addWidget(new_pass)
+        
+        layout.addWidget(QLabel('确认新密码:'))
+        confirm_pass = QLineEdit()
+        confirm_pass.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addWidget(confirm_pass)
+        
+        button_layout = QHBoxLayout()
+        ok_btn = QPushButton('确定')
+        cancel_btn = QPushButton('取消')
+        button_layout.addWidget(ok_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
+        
+        def on_ok():
+            if new_pass.text() != confirm_pass.text():
+                QMessageBox.warning(dialog, '警告', '两次密码不一致')
+                return
+            
+            try:
+                session = get_db()
+                user_service = UserService(session)
+                success, message = user_service.change_password(
+                    self.current_user.id,
+                    old_pass.text(),
+                    new_pass.text()
+                )
+                if success:
+                    session.commit()
+                    QMessageBox.information(dialog, '成功', '密码修改成功')
+                    dialog.accept()
+                else:
+                    session.rollback()
+                    QMessageBox.warning(dialog, '失败', message)
+            except Exception as e:
+                QMessageBox.critical(dialog, '错误', str(e))
+        
+        ok_btn.clicked.connect(on_ok)
+        cancel_btn.clicked.connect(dialog.reject)
+        
+        dialog.exec()
+    
+    def on_delete_account(self):
+        """注销账户"""
+        reply = QMessageBox.question(
+            self, '注销账户',
+            '确定要注销账户吗？此操作不可恢复！',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                session = get_db()
+                user_service = UserService(session)
+                success, message = user_service.delete_user(self.current_user.id)
+                if success:
+                    session.commit()
+                    QMessageBox.information(self, '成功', '账户已注销')
+                    self.on_logout()
+                else:
+                    session.rollback()
+                    QMessageBox.warning(self, '失败', message)
+            except Exception as e:
+                QMessageBox.critical(self, '错误', str(e))
+    
+    def on_logout(self):
+        """退出登录"""
+        logger.info(f"用户退出登录: {self.current_user.username}")
+        self.logout_signal.emit()
+        self.close()
     
     def on_user_management(self):
         """用户管理"""

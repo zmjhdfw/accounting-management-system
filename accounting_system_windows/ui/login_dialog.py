@@ -9,6 +9,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QKeyEvent
 from models.user import User
 from services.auth_service import AuthService
+from services.user_service import UserService
 from infrastructure.database import get_db
 from infrastructure.logger import get_logger
 
@@ -23,12 +24,13 @@ class LoginDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.auth_service = None
+        self.user_service = None
         self.init_ui()
     
     def init_ui(self):
         """初始化UI"""
         self.setWindowTitle('会计管理系统 - 登录')
-        self.setFixedSize(400, 250)
+        self.setFixedSize(400, 300)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
         
         layout = QVBoxLayout()
@@ -68,7 +70,7 @@ class LoginDialog(QDialog):
         self.remember_check = QCheckBox('记住密码')
         layout.addWidget(self.remember_check)
         
-        # 登录按钮
+        # 按钮
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         
@@ -76,6 +78,11 @@ class LoginDialog(QDialog):
         self.login_button.setFixedWidth(100)
         self.login_button.clicked.connect(self.on_login)
         button_layout.addWidget(self.login_button)
+        
+        self.register_button = QPushButton('注册')
+        self.register_button.setFixedWidth(100)
+        self.register_button.clicked.connect(self.on_register)
+        button_layout.addWidget(self.register_button)
         
         button_layout.addStretch()
         layout.addLayout(button_layout)
@@ -126,6 +133,90 @@ class LoginDialog(QDialog):
         finally:
             self.login_button.setEnabled(True)
             self.login_button.setText('登录')
+    
+    def on_register(self):
+        """注册"""
+        username = self.username_edit.text().strip()
+        password = self.password_edit.text()
+        
+        if not username:
+            QMessageBox.warning(self, '警告', '请输入用户名')
+            self.username_edit.setFocus()
+            return
+        
+        if not password:
+            QMessageBox.warning(self, '警告', '请输入密码')
+            self.password_edit.setFocus()
+            return
+        
+        # 确认密码
+        confirm_password, ok = self.get_password_confirmation()
+        if not ok:
+            return
+        
+        if password != confirm_password:
+            QMessageBox.warning(self, '警告', '两次密码不一致')
+            return
+        
+        try:
+            session = get_db()
+            self.user_service = UserService(session)
+            
+            # 注册用户
+            success, user, message = self.user_service.create_user(
+                username=username,
+                password=password,
+                nickname=username,
+                role='user'
+            )
+            
+            if success:
+                session.commit()
+                QMessageBox.information(self, '成功', '注册成功，请登录')
+                logger.info(f"用户注册成功: {username}")
+            else:
+                session.rollback()
+                QMessageBox.warning(self, '注册失败', message)
+        except Exception as e:
+            logger.error(f"注册异常: {str(e)}")
+            QMessageBox.critical(self, '错误', f'注册失败: {str(e)}')
+    
+    def get_password_confirmation(self):
+        """获取密码确认"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle('确认密码')
+        dialog.setFixedSize(300, 150)
+        
+        layout = QVBoxLayout()
+        dialog.setLayout(layout)
+        
+        layout.addWidget(QLabel('请再次输入密码:'))
+        password_edit = QLineEdit()
+        password_edit.setEchoMode(QLineEdit.EchoMode.Password)
+        layout.addWidget(password_edit)
+        
+        button_layout = QHBoxLayout()
+        ok_btn = QPushButton('确定')
+        cancel_btn = QPushButton('取消')
+        button_layout.addWidget(ok_btn)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
+        
+        result = [None]
+        
+        def on_ok():
+            result[0] = password_edit.text()
+            dialog.accept()
+        
+        def on_cancel():
+            dialog.reject()
+        
+        ok_btn.clicked.connect(on_ok)
+        cancel_btn.clicked.connect(on_cancel)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            return result[0], True
+        return None, False
     
     def keyPressEvent(self, event: QKeyEvent):
         """键盘事件"""
