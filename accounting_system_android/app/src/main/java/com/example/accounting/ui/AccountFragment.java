@@ -81,7 +81,12 @@ public class AccountFragment extends Fragment {
             EditText balanceEdit = dialog.findViewById(R.id.account_balance_edit);
             codeEdit.setText(item.code);
             nameEdit.setText(item.name);
-            balanceEdit.setText(String.valueOf(item.balance));
+            // 格式化余额，避免科学计数法
+            if (item.balance == (long) item.balance) {
+                balanceEdit.setText(String.format("%.0f", item.balance));
+            } else {
+                balanceEdit.setText(String.format("%.2f", item.balance));
+            }
         });
     }
     
