@@ -1,7 +1,7 @@
 """
 用户和角色模型
 """
-from sqlalchemy import Column, String, Boolean, ForeignKey, Table
+from sqlalchemy import Column, String, Boolean, ForeignKey, Table, Integer, DateTime
 from sqlalchemy.orm import relationship
 from models.base import BaseModel
 

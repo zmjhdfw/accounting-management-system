@@ -1,7 +1,7 @@
 """
 凭证模型
 """
-from sqlalchemy import Column, String, Boolean, ForeignKey, Numeric, Integer, Enum, Date, Text
+from sqlalchemy import Column, String, Boolean, ForeignKey, Numeric, Integer, Enum, Date, Text, DateTime
 from sqlalchemy.orm import relationship
 from models.base import BaseModel
 import enum

@@ -1,7 +1,7 @@
 """
 用户管理服务
 """
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from dao.user_dao import UserDao, RoleDao
 from dao.audit_log_dao import AuditLogDao

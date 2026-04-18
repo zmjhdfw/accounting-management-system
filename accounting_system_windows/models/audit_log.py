@@ -1,7 +1,7 @@
 """
 审计日志模型
 """
-from sqlalchemy import Column, String, Text, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from models.base import BaseModel
 
