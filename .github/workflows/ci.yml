@@ -123,12 +123,18 @@ jobs:
         cd accounting_system_android
         gradle assembleRelease --no-daemon
     
+    - name: List APK files
+      run: |
+        echo "Listing APK files..."
+        find accounting_system_android -name "*.apk" -type f || echo "No APK found"
+    
     - name: Upload Android artifact
       uses: actions/upload-artifact@v4
       with:
         name: android-apk
-        path: accounting_system_android/app/build/outputs/apk/release/app-release.apk
+        path: accounting_system_android/app/build/outputs/apk/**/*.apk
         retention-days: 30
+        if-no-files-found: warn
 
   create-release:
     name: Create Release
