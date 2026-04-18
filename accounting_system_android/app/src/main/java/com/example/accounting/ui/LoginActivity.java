@@ -1,5 +1,6 @@
 package com.example.accounting.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,13 +40,13 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
             
-            // TODO: 实现登录逻辑
+            // 登录验证
             if (username.equals("admin") && password.equals("admin123")) {
                 Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
                 // 跳转到主界面
-                // Intent intent = new Intent(this, MainActivity.class);
-                // startActivity(intent);
-                // finish();
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finish();
             } else {
                 Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
             }
