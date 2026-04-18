@@ -1,10 +1,12 @@
 package com.example.accounting.ui;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -24,7 +26,7 @@ public class AccountFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView emptyView;
     private Button addButton;
-    private List<String> accountList = new ArrayList<>();
+    private List<AccountItem> accountList = new ArrayList<>();
     private AccountAdapter adapter;
     
     @Nullable
@@ -39,23 +41,57 @@ public class AccountFragment extends Fragment {
         addButton = view.findViewById(R.id.add_account_button);
         
         // 设置RecyclerView
-        adapter = new AccountAdapter(accountList);
+        adapter = new AccountAdapter(accountList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
         
         // 添加按钮点击事件
-        addButton.setOnClickListener(v -> {
-            new AddAccountDialog(getContext(), (code, name) -> {
-                // 添加科目到列表
-                accountList.add(code + " - " + name);
-                adapter.notifyDataSetChanged();
-                updateView();
-                Toast.makeText(getContext(), "科目添加成功", Toast.LENGTH_SHORT).show();
-            }).show();
-        });
+        addButton.setOnClickListener(v -> showAddDialog());
         
         updateView();
         return view;
+    }
+    
+    private void showAddDialog() {
+        new AddAccountDialog(getContext(), (code, name) -> {
+            // 添加科目到列表
+            accountList.add(new AccountItem(code, name));
+            adapter.notifyDataSetChanged();
+            updateView();
+            Toast.makeText(getContext(), "科目添加成功", Toast.LENGTH_SHORT).show();
+        }).show();
+    }
+    
+    private void showEditDialog(int position) {
+        AccountItem item = accountList.get(position);
+        AddAccountDialog dialog = new AddAccountDialog(getContext(), (code, name) -> {
+            item.code = code;
+            item.name = name;
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getContext(), "科目修改成功", Toast.LENGTH_SHORT).show();
+        });
+        dialog.show();
+        // 预填充数据
+        dialog.findViewById(R.id.account_code_edit).post(() -> {
+            EditText codeEdit = dialog.findViewById(R.id.account_code_edit);
+            EditText nameEdit = dialog.findViewById(R.id.account_name_edit);
+            codeEdit.setText(item.code);
+            nameEdit.setText(item.name);
+        });
+    }
+    
+    private void deleteAccount(int position) {
+        new AlertDialog.Builder(getContext())
+            .setTitle("确认删除")
+            .setMessage("确定要删除科目 " + accountList.get(position).code + " 吗？")
+            .setPositiveButton("删除", (d, w) -> {
+                accountList.remove(position);
+                adapter.notifyDataSetChanged();
+                updateView();
+                Toast.makeText(getContext(), "科目已删除", Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("取消", null)
+            .show();
     }
     
     private void updateView() {
@@ -70,27 +106,56 @@ public class AccountFragment extends Fragment {
     }
     
     /**
+     * 科目数据类
+     */
+    static class AccountItem {
+        String code;
+        String name;
+        
+        AccountItem(String code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+    }
+    
+    /**
      * 科目列表适配器
      */
     private static class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.ViewHolder> {
-        private List<String> data;
+        private List<AccountItem> data;
+        private AccountFragment fragment;
         
-        AccountAdapter(List<String> data) {
+        AccountAdapter(List<AccountItem> data, AccountFragment fragment) {
             this.data = data;
+            this.fragment = fragment;
         }
         
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            TextView tv = new TextView(parent.getContext());
-            tv.setPadding(32, 24, 32, 24);
-            tv.setTextSize(16);
-            return new ViewHolder(tv);
+            View view = LayoutInflater.from(parent.getContext())
+                .inflate(android.R.layout.simple_list_item_2, parent, false);
+            return new ViewHolder(view);
         }
         
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            ((TextView) holder.itemView).setText(data.get(position));
+            AccountItem item = data.get(position);
+            TextView text1 = holder.itemView.findViewById(android.R.id.text1);
+            TextView text2 = holder.itemView.findViewById(android.R.id.text2);
+            text1.setText(item.code + " - " + item.name);
+            text2.setText("点击编辑 | 长按删除");
+            text1.setTextSize(16);
+            text2.setTextSize(12);
+            
+            // 点击编辑
+            holder.itemView.setOnClickListener(v -> fragment.showEditDialog(position));
+            
+            // 长按删除
+            holder.itemView.setOnLongClickListener(v -> {
+                fragment.deleteAccount(position);
+                return true;
+            });
         }
         
         @Override
