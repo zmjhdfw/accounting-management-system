@@ -5,6 +5,7 @@ import pytest
 import sys
 import os
 import tempfile
+import gc
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,27 +29,32 @@ def test_user_login():
         
         # 测试登录
         session = db_manager.get_session()
-        auth_service = AuthService(session)
-        
-        # 正确登录
-        success, user, message = auth_service.login('admin', 'admin123')
-        assert success == True
-        assert user is not None
-        assert user.username == 'admin'
-        
-        # 错误密码
-        success, user, message = auth_service.login('admin', 'wrong_password')
-        assert success == False
-        assert '错误' in message
-        
-        # 不存在的用户
-        success, user, message = auth_service.login('nonexistent', 'password')
-        assert success == False
-        
-        session.close()
+        try:
+            auth_service = AuthService(session)
+            
+            # 正确登录
+            success, user, message = auth_service.login('admin', 'admin123')
+            assert success == True
+            assert user is not None
+            assert user.username == 'admin'
+            
+            # 错误密码
+            success, user, message = auth_service.login('admin', 'wrong_password')
+            assert success == False
+            assert '错误' in message
+            
+            # 不存在的用户
+            success, user, message = auth_service.login('nonexistent', 'password')
+            assert success == False
+        finally:
+            session.close()
+            gc.collect()
     finally:
         if os.path.exists(db_path):
-            os.remove(db_path)
+            try:
+                os.remove(db_path)
+            except:
+                pass
 
 
 def test_account_service():
@@ -63,33 +69,37 @@ def test_account_service():
         db_manager.init_default_data()
         
         session = db_manager.get_session()
-        
-        # 获取admin用户ID
-        from dao.user_dao import UserDao
-        user_dao = UserDao(session)
-        admin = user_dao.get_by_username('admin')
-        
-        account_service = AccountService(session, admin.id)
-        
-        # 测试创建科目
-        success, account, message = account_service.create_account(
-            code='9999',
-            name='测试科目',
-            account_type=AccountType.ASSET,
-            balance_direction='debit'
-        )
-        assert success == True
-        assert account is not None
-        assert account.code == '9999'
-        
-        # 测试获取科目树
-        tree = account_service.get_account_tree()
-        assert len(tree) > 0
-        
-        session.close()
+        try:
+            # 获取admin用户ID
+            from dao.user_dao import UserDao
+            user_dao = UserDao(session)
+            admin = user_dao.get_by_username('admin')
+            
+            account_service = AccountService(session, admin.id)
+            
+            # 测试创建科目
+            success, account, message = account_service.create_account(
+                code='9999',
+                name='测试科目',
+                account_type=AccountType.ASSET,
+                balance_direction='debit'
+            )
+            assert success == True
+            assert account is not None
+            assert account.code == '9999'
+            
+            # 测试获取科目树
+            tree = account_service.get_account_tree()
+            assert len(tree) > 0
+        finally:
+            session.close()
+            gc.collect()
     finally:
         if os.path.exists(db_path):
-            os.remove(db_path)
+            try:
+                os.remove(db_path)
+            except:
+                pass
 
 
 if __name__ == '__main__':

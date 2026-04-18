@@ -5,6 +5,7 @@ import pytest
 import sys
 import os
 import tempfile
+import gc
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,12 +25,14 @@ def test_database_initialization():
         # 初始化数据库
         db_manager = DatabaseManager(db_path)
         db_manager.init_database()
+        db_manager.init_default_data()  # 添加默认数据初始化
         
         # 验证数据库文件创建
         assert os.path.exists(db_path)
         
         # 验证默认数据
-        with db_manager.session_scope() as session:
+        session = db_manager.get_session()
+        try:
             # 检查角色
             roles = session.query(Role).all()
             assert len(roles) == 4
@@ -44,10 +47,16 @@ def test_database_initialization():
             accounts = session.query(Account).all()
             assert len(accounts) > 0
             assert any(a.code == '1001' for a in accounts)
+        finally:
+            session.close()
+            gc.collect()  # 强制垃圾回收
     finally:
         # 清理临时文件
         if os.path.exists(db_path):
-            os.remove(db_path)
+            try:
+                os.remove(db_path)
+            except:
+                pass
 
 
 def test_password_hashing():

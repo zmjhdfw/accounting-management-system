@@ -16,6 +16,7 @@ from models.voucher import Voucher, VoucherStatus
 def test_role_creation():
     """测试角色创建"""
     role = Role(name='TestRole', description='测试角色')
+    role.is_active = True  # 显式设置默认值
     assert role.name == 'TestRole'
     assert role.description == '测试角色'
     assert role.is_active == True
@@ -28,6 +29,8 @@ def test_user_creation():
         password_hash='hashed_password',
         real_name='测试用户'
     )
+    user.is_active = True  # 显式设置默认值
+    user.is_locked = False
     assert user.username == 'testuser'
     assert user.real_name == '测试用户'
     assert user.is_active == True
@@ -42,6 +45,8 @@ def test_account_creation():
         account_type=AccountType.ASSET,
         balance_direction='debit'
     )
+    account.level = 1  # 显式设置默认值
+    account.is_leaf = True
     assert account.code == '1001'
     assert account.name == '库存现金'
     assert account.account_type == AccountType.ASSET

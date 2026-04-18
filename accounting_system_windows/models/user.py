@@ -45,6 +45,7 @@ class User(BaseModel):
     
     # 关系
     roles = relationship('Role', secondary=user_role, back_populates='users')
+    audit_logs = relationship('AuditLog', back_populates='user')
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"

@@ -126,8 +126,72 @@ class ReportView(QWidget):
     
     def on_export_pdf(self):
         """导出PDF"""
-        QMessageBox.information(self, '提示', 'PDF导出功能开发中...')
+        from PyQt6.QtWidgets import QFileDialog
+        from services.report_service import ReportService
+        from infrastructure.database import get_db
+        
+        report_type = self.report_combo.currentData()
+        report_name = self.report_combo.currentText()
+        
+        # 选择保存路径
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, '保存PDF文件', 
+            f'{report_name}.pdf',
+            'PDF文件 (*.pdf)'
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            session = get_db()
+            service = ReportService(session, self.current_user_id)
+            
+            # 获取当前期间ID（简化处理，使用1）
+            period_id = 1
+            
+            success = service.export_report(report_type, period_id, file_path, 'pdf')
+            
+            if success:
+                QMessageBox.information(self, '成功', f'PDF导出成功:\n{file_path}')
+            else:
+                QMessageBox.warning(self, '失败', 'PDF导出失败')
+        except Exception as e:
+            logger.error(f"导出PDF失败: {str(e)}")
+            QMessageBox.critical(self, '错误', f'导出失败: {str(e)}')
     
     def on_export_excel(self):
         """导出Excel"""
-        QMessageBox.information(self, '提示', 'Excel导出功能开发中...')
+        from PyQt6.QtWidgets import QFileDialog
+        from services.report_service import ReportService
+        from infrastructure.database import get_db
+        
+        report_type = self.report_combo.currentData()
+        report_name = self.report_combo.currentText()
+        
+        # 选择保存路径
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, '保存Excel文件',
+            f'{report_name}.xlsx',
+            'Excel文件 (*.xlsx)'
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            session = get_db()
+            service = ReportService(session, self.current_user_id)
+            
+            # 获取当前期间ID（简化处理，使用1）
+            period_id = 1
+            
+            success = service.export_report(report_type, period_id, file_path, 'excel')
+            
+            if success:
+                QMessageBox.information(self, '成功', f'Excel导出成功:\n{file_path}')
+            else:
+                QMessageBox.warning(self, '失败', 'Excel导出失败')
+        except Exception as e:
+            logger.error(f"导出Excel失败: {str(e)}")
+            QMessageBox.critical(self, '错误', f'导出失败: {str(e)}')
