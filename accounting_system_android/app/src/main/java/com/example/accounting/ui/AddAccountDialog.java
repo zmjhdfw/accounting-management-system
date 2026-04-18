@@ -50,15 +50,15 @@ public class AddAccountDialog extends Dialog {
         // 设置科目类型下拉框
         String[] types = {"资产", "负债", "所有者权益", "收入", "费用"};
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(getContext(),
-            android.R.layout.simple_spinner_item, types);
-        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            R.layout.spinner_item, types);
+        typeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         typeSpinner.setAdapter(typeAdapter);
         
         // 设置余额方向下拉框
         String[] directions = {"借", "贷"};
         ArrayAdapter<String> directionAdapter = new ArrayAdapter<>(getContext(),
-            android.R.layout.simple_spinner_item, directions);
-        directionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            R.layout.spinner_item, directions);
+        directionAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         directionSpinner.setAdapter(directionAdapter);
         
         saveButton.setOnClickListener(v -> {
