@@ -53,9 +53,9 @@ public class AccountFragment extends Fragment {
     }
     
     private void showAddDialog() {
-        new AddAccountDialog(getContext(), (code, name, type, direction) -> {
+        new AddAccountDialog(getContext(), (code, name, type, balance, direction) -> {
             // 添加科目到列表
-            accountList.add(new AccountItem(code, name, type, 0.0, direction));
+            accountList.add(new AccountItem(code, name, type, balance, direction));
             adapter.notifyDataSetChanged();
             updateView();
             Toast.makeText(getContext(), "科目添加成功", Toast.LENGTH_SHORT).show();
@@ -64,10 +64,11 @@ public class AccountFragment extends Fragment {
     
     private void showEditDialog(int position) {
         AccountItem item = accountList.get(position);
-        AddAccountDialog dialog = new AddAccountDialog(getContext(), (code, name, type, direction) -> {
+        AddAccountDialog dialog = new AddAccountDialog(getContext(), (code, name, type, balance, direction) -> {
             item.code = code;
             item.name = name;
             item.type = type;
+            item.balance = balance;
             item.direction = direction;
             adapter.notifyDataSetChanged();
             Toast.makeText(getContext(), "科目修改成功", Toast.LENGTH_SHORT).show();
@@ -77,8 +78,10 @@ public class AccountFragment extends Fragment {
         dialog.findViewById(R.id.account_code_edit).post(() -> {
             EditText codeEdit = dialog.findViewById(R.id.account_code_edit);
             EditText nameEdit = dialog.findViewById(R.id.account_name_edit);
+            EditText balanceEdit = dialog.findViewById(R.id.account_balance_edit);
             codeEdit.setText(item.code);
             nameEdit.setText(item.name);
+            balanceEdit.setText(String.valueOf(item.balance));
         });
     }
     

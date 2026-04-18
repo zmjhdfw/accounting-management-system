@@ -20,11 +20,12 @@ public class AddAccountDialog extends Dialog {
     private OnAccountAddedListener listener;
     private EditText codeEdit;
     private EditText nameEdit;
+    private EditText balanceEdit;
     private Spinner typeSpinner;
     private Spinner directionSpinner;
     
     public interface OnAccountAddedListener {
-        void onAccountAdded(String code, String name, String type, String direction);
+        void onAccountAdded(String code, String name, String type, double balance, String direction);
     }
     
     public AddAccountDialog(@NonNull Context context, OnAccountAddedListener listener) {
@@ -40,6 +41,7 @@ public class AddAccountDialog extends Dialog {
         
         codeEdit = findViewById(R.id.account_code_edit);
         nameEdit = findViewById(R.id.account_name_edit);
+        balanceEdit = findViewById(R.id.account_balance_edit);
         typeSpinner = findViewById(R.id.account_type_spinner);
         directionSpinner = findViewById(R.id.account_direction_spinner);
         Button saveButton = findViewById(R.id.save_button);
@@ -62,6 +64,7 @@ public class AddAccountDialog extends Dialog {
         saveButton.setOnClickListener(v -> {
             String code = codeEdit.getText().toString().trim();
             String name = nameEdit.getText().toString().trim();
+            String balanceStr = balanceEdit.getText().toString().trim();
             String type = typeSpinner.getSelectedItem().toString();
             String direction = directionSpinner.getSelectedItem().toString();
             
@@ -75,8 +78,18 @@ public class AddAccountDialog extends Dialog {
                 return;
             }
             
+            double balance = 0.0;
+            if (!balanceStr.isEmpty()) {
+                try {
+                    balance = Double.parseDouble(balanceStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "余额格式不正确", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            
             if (listener != null) {
-                listener.onAccountAdded(code, name, type, direction);
+                listener.onAccountAdded(code, name, type, balance, direction);
             }
             dismiss();
         });
