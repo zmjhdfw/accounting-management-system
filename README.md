@@ -9,9 +9,10 @@
 ## 功能特性
 
 ### 核心功能
-- **科目管理**: 支持多级科目树结构，科目余额自动计算
+- **用户系统**: 用户注册、登录、资料编辑、修改密码、注销账户
+- **科目管理**: 支持多级科目树结构，科目余额自动计算，增删改查完整功能
 - **凭证管理**: 凭证录入、修改、删除、审核全流程管理
-- **报表查询**: 资产负债表、利润表、试算平衡表等财务报表
+- **报表查询**: 科目余额表、资产负债表、利润表等财务报表
 - **用户管理**: 用户认证、角色授权、权限控制
 - **审计日志**: 完整的操作审计记录
 
@@ -19,6 +20,7 @@
 - **智能交互**: 普通操作自动保存，重要操作需确认
 - **数据安全**: 密码加密存储，敏感信息脱敏
 - **跨平台**: Windows桌面端 + Android移动端
+- **无默认账户**: 首次使用需注册账户
 
 ## 技术架构
 
@@ -29,8 +31,7 @@
 
 ### Android端 (Java)
 - **UI框架**: AndroidX + Material Design
-- **数据库**: Room
-- **网络**: Retrofit
+- **数据存储**: SharedPreferences
 - **架构**: MVVM架构
 
 ## 项目结构
@@ -50,24 +51,8 @@ accounting_system_windows/          # Windows端项目
 │   ├── voucher_service.py         # 凭证服务
 │   └── confirmation_service.py    # 操作确认机制
 ├── dao/                            # 数据访问层
-│   ├── user_dao.py                # 用户DAO
-│   ├── account_dao.py             # 科目DAO
-│   ├── voucher_dao.py             # 凭证DAO
-│   └── audit_log_dao.py           # 审计日志DAO
 ├── models/                         # 数据模型
-│   ├── user.py                    # 用户模型
-│   ├── account.py                 # 科目模型
-│   ├── voucher.py                 # 凭证模型
-│   └── audit_log.py               # 审计日志模型
 ├── infrastructure/                 # 基础设施层
-│   ├── database.py                # 数据库管理
-│   ├── logger.py                  # 日志管理
-│   ├── config.py                  # 配置管理
-│   └── cache.py                   # 缓存管理
-├── config/                         # 配置文件
-│   ├── app.yaml                   # 应用配置
-│   ├── database.yaml              # 数据库配置
-│   └── logging.yaml               # 日志配置
 ├── tests/                          # 测试
 ├── main.py                         # 主程序入口
 └── requirements.txt                # 依赖包
@@ -77,10 +62,15 @@ accounting_system_android/          # Android端项目
     └── src/main/
         ├── java/com/example/accounting/
         │   ├── ui/                 # 表示层
-        │   ├── services/           # 业务逻辑层
-        │   ├── data/               # 数据层
-        │   ├── di/                 # 依赖注入
-        │   └── utils/              # 工具类
+        │   │   ├── MainActivity.java
+        │   │   ├── LoginActivity.java
+        │   │   ├── AccountFragment.java
+        │   │   ├── VoucherFragment.java
+        │   │   └── ReportFragment.java
+        │   └── data/               # 数据层
+        │       ├── UserManager.java
+        │       ├── AccountManager.java
+        │       └── VoucherManager.java
         └── res/                    # 资源文件
 ```
 
@@ -100,9 +90,7 @@ accounting_system_android/          # Android端项目
 **方式一：直接运行（推荐）**
 1. 从Releases下载 `AccountingSystem.exe`
 2. 双击运行即可
-3. 默认登录：
-   - 用户名: `admin`
-   - 密码: `admin123`
+3. 首次使用需注册账户
 
 **方式二：从源码运行**
 ```bash
@@ -116,7 +104,7 @@ python main.py
 **方式一：安装APK（推荐）**
 1. 从Releases下载 `app-release.apk`
 2. 在手机上安装APK文件
-3. 打开应用即可使用
+3. 打开应用，首次使用需注册账户
 
 **方式二：从源码构建**
 1. 使用Android Studio打开 `accounting_system_android` 项目
@@ -125,24 +113,34 @@ python main.py
 
 ## 使用说明
 
+### 用户系统
+1. 首次使用需注册账户
+2. 登录后可在用户菜单中：
+   - 查看账户信息
+   - 编辑资料（昵称、邮箱）
+   - 修改密码
+   - 注销账户
+   - 退出登录
+
 ### 科目管理
-1. 在主界面点击"科目管理"标签
-2. 使用工具栏按钮新增、编辑、删除科目
-3. 支持多级科目树结构
-4. 右键菜单提供快捷操作
+1. 在主界面点击"科目"标签
+2. 点击右上角"+"按钮添加科目
+3. 填写科目编码、名称、类型、余额、方向
+4. 点击科目可编辑，长按可删除
 
 ### 凭证管理
-1. 在主界面点击"凭证管理"标签
-2. 点击"新建凭证"创建新凭证
-3. 填写凭证日期、摘要、科目、金额等信息
-4. 系统自动检查借贷平衡
-5. 提交凭证后可进行审核
+1. 在主界面点击"凭证"标签
+2. 点击右上角"+"按钮创建凭证
+3. 填写凭证号、日期、摘要、借贷方科目、金额
+4. 点击凭证可编辑，长按可删除
 
 ### 报表查询
-1. 在主界面点击"报表查询"标签
-2. 选择报表类型和会计期间
+1. 在主界面点击"报表"标签
+2. 选择报表类型：
+   - 科目余额表
+   - 资产负债表
+   - 利润表
 3. 点击"查询"生成报表
-4. 支持导出PDF和Excel格式
 
 ## 开发指南
 
@@ -162,6 +160,13 @@ pytest --cov=. tests/
 ```
 
 ## 版本历史
+
+### v1.1.0 (2026-04-19)
+- 添加用户注册登录系统
+- 添加用户账户管理功能
+- 完善报表功能（科目余额表、资产负债表、利润表）
+- 移除默认admin账户
+- Windows端同步Android端功能
 
 ### v1.0.0 (2026-04-19)
 - 初始版本发布
