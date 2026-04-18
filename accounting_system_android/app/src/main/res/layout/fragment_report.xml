@@ -6,22 +6,49 @@
     android:orientation="vertical"
     android:padding="16dp">
     
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="报表类型"
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:layout_marginBottom="8dp"/>
+    
     <Spinner
         android:id="@+id/report_type_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginBottom="16dp"/>
     
     <Button
         android:id="@+id/query_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:text="查询"
+        android:textSize="16sp"
         android:layout_marginBottom="16dp"/>
     
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/report_recycler_view"
+    <TextView
+        android:id="@+id/report_title"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
+    
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        
+        <LinearLayout
+            android:id="@+id/report_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+            
+    </ScrollView>
         
 </LinearLayout>
