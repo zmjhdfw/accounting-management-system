@@ -4,8 +4,10 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import com.example.accounting.R;
@@ -18,9 +20,11 @@ public class AddAccountDialog extends Dialog {
     private OnAccountAddedListener listener;
     private EditText codeEdit;
     private EditText nameEdit;
+    private Spinner typeSpinner;
+    private Spinner directionSpinner;
     
     public interface OnAccountAddedListener {
-        void onAccountAdded(String code, String name);
+        void onAccountAdded(String code, String name, String type, String direction);
     }
     
     public AddAccountDialog(@NonNull Context context, OnAccountAddedListener listener) {
@@ -36,12 +40,30 @@ public class AddAccountDialog extends Dialog {
         
         codeEdit = findViewById(R.id.account_code_edit);
         nameEdit = findViewById(R.id.account_name_edit);
+        typeSpinner = findViewById(R.id.account_type_spinner);
+        directionSpinner = findViewById(R.id.account_direction_spinner);
         Button saveButton = findViewById(R.id.save_button);
         Button cancelButton = findViewById(R.id.cancel_button);
+        
+        // 设置科目类型下拉框
+        String[] types = {"资产", "负债", "所有者权益", "收入", "费用"};
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(getContext(),
+            android.R.layout.simple_spinner_item, types);
+        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeSpinner.setAdapter(typeAdapter);
+        
+        // 设置余额方向下拉框
+        String[] directions = {"借", "贷"};
+        ArrayAdapter<String> directionAdapter = new ArrayAdapter<>(getContext(),
+            android.R.layout.simple_spinner_item, directions);
+        directionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        directionSpinner.setAdapter(directionAdapter);
         
         saveButton.setOnClickListener(v -> {
             String code = codeEdit.getText().toString().trim();
             String name = nameEdit.getText().toString().trim();
+            String type = typeSpinner.getSelectedItem().toString();
+            String direction = directionSpinner.getSelectedItem().toString();
             
             if (code.isEmpty()) {
                 Toast.makeText(getContext(), "请输入科目代码", Toast.LENGTH_SHORT).show();
@@ -54,7 +76,7 @@ public class AddAccountDialog extends Dialog {
             }
             
             if (listener != null) {
-                listener.onAccountAdded(code, name);
+                listener.onAccountAdded(code, name, type, direction);
             }
             dismiss();
         });

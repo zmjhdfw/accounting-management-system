@@ -53,9 +53,9 @@ public class AccountFragment extends Fragment {
     }
     
     private void showAddDialog() {
-        new AddAccountDialog(getContext(), (code, name) -> {
+        new AddAccountDialog(getContext(), (code, name, type, direction) -> {
             // 添加科目到列表
-            accountList.add(new AccountItem(code, name));
+            accountList.add(new AccountItem(code, name, type, 0.0, direction));
             adapter.notifyDataSetChanged();
             updateView();
             Toast.makeText(getContext(), "科目添加成功", Toast.LENGTH_SHORT).show();
@@ -64,9 +64,11 @@ public class AccountFragment extends Fragment {
     
     private void showEditDialog(int position) {
         AccountItem item = accountList.get(position);
-        AddAccountDialog dialog = new AddAccountDialog(getContext(), (code, name) -> {
+        AddAccountDialog dialog = new AddAccountDialog(getContext(), (code, name, type, direction) -> {
             item.code = code;
             item.name = name;
+            item.type = type;
+            item.direction = direction;
             adapter.notifyDataSetChanged();
             Toast.makeText(getContext(), "科目修改成功", Toast.LENGTH_SHORT).show();
         });

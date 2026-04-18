@@ -55,6 +55,34 @@
         android:textColorHint="#999999"
         android:padding="12dp"
         android:background="@android:drawable/edit_text"
+        android:layout_marginBottom="16dp"/>
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="科目类型"
+        android:textSize="16sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="8dp"/>
+    
+    <Spinner
+        android:id="@+id/account_type_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"/>
+    
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="余额方向"
+        android:textSize="16sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="8dp"/>
+    
+    <Spinner
+        android:id="@+id/account_direction_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
         android:layout_marginBottom="24dp"/>
     
     <LinearLayout
