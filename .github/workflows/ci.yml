@@ -155,7 +155,17 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: android-apk
-        path: ./release-assets
+        path: ./android-apk
+    
+    - name: Prepare release files
+      run: |
+        mkdir -p release-assets
+        # 复制Windows exe
+        if [ -f "./windows-executable/AccountingSystem.exe" ]; then
+          cp ./windows-executable/AccountingSystem.exe ./release-assets/
+        fi
+        # 复制APK文件（从子目录中查找）
+        find ./android-apk -name "*.apk" -exec cp {} ./release-assets/ \;
     
     - name: Get version
       id: version

@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -18,6 +20,7 @@ public class AccountFragment extends Fragment {
     
     private RecyclerView recyclerView;
     private TextView emptyView;
+    private Button addButton;
     
     @Nullable
     @Override
@@ -28,11 +31,19 @@ public class AccountFragment extends Fragment {
         
         recyclerView = view.findViewById(R.id.account_recycler_view);
         emptyView = view.findViewById(R.id.empty_view);
+        addButton = view.findViewById(R.id.add_account_button);
         
         // 显示空状态提示
         if (emptyView != null) {
-            emptyView.setText("暂无科目数据\n\n请点击右上角菜单添加科目\n\n示例科目：\n• 1001 库存现金\n• 1002 银行存款\n• 1101 短期投资\n• 1121 应收票据\n• 1122 应收账款");
+            emptyView.setText("暂无科目数据\n\n点击上方\"添加科目\"按钮添加\n\n示例科目：\n• 1001 库存现金\n• 1002 银行存款\n• 1101 短期投资");
             emptyView.setVisibility(View.VISIBLE);
+        }
+        
+        // 添加按钮点击事件
+        if (addButton != null) {
+            addButton.setOnClickListener(v -> {
+                Toast.makeText(getContext(), "添加科目功能开发中...", Toast.LENGTH_SHORT).show();
+            });
         }
         
         return view;
