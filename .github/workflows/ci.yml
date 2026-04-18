@@ -115,18 +115,11 @@ jobs:
     
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: '8.4'
     
-    - name: Make gradlew executable
+    - name: Build with Gradle
       run: |
         cd accounting_system_android
-        chmod +x gradlew
-    
-    - name: Build APK
-      run: |
-        cd accounting_system_android
-        ./gradlew assembleRelease
+        gradle assembleRelease --no-daemon
     
     - name: Upload Android artifact
       uses: actions/upload-artifact@v4
