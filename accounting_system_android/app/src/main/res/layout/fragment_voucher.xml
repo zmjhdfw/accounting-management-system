@@ -5,9 +5,37 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
     
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="end">
+        
+        <Button
+            android:id="@+id/add_voucher_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="添加凭证"
+            android:textSize="14sp"/>
+            
+    </LinearLayout>
+    
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/voucher_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone"/>
+    
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="#666666"/>
         
 </LinearLayout>
