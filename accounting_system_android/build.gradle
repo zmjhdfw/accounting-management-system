@@ -15,8 +15,3 @@ buildscript {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-// Gradle Wrapper task
-task wrapper(type: Wrapper) {
-    gradleVersion = '8.4'
-}
