@@ -86,25 +86,39 @@ accounting_system_android/          # Android端项目
 
 ## 安装与运行
 
+### 快速开始（推荐）
+
+**从GitHub Releases下载已构建的应用：**
+
+1. 访问 [Releases页面](https://github.com/zmjhdfw/accounting-management-system/releases)
+2. 下载最新版本的文件：
+   - **Windows端**: `AccountingSystem.exe`
+   - **Android端**: `app-release.apk`
+
 ### Windows端
 
-1. **安装依赖**
+**方式一：直接运行（推荐）**
+1. 从Releases下载 `AccountingSystem.exe`
+2. 双击运行即可
+3. 默认登录：
+   - 用户名: `admin`
+   - 密码: `admin123`
+
+**方式二：从源码运行**
 ```bash
 cd accounting_system_windows
 pip install -r requirements.txt
-```
-
-2. **运行程序**
-```bash
 python main.py
 ```
 
-3. **默认登录**
-- 用户名: `admin`
-- 密码: `admin123`
-
 ### Android端
 
+**方式一：安装APK（推荐）**
+1. 从Releases下载 `app-release.apk`
+2. 在手机上安装APK文件
+3. 打开应用即可使用
+
+**方式二：从源码构建**
 1. 使用Android Studio打开 `accounting_system_android` 项目
 2. 同步Gradle依赖
 3. 运行到模拟器或真机
