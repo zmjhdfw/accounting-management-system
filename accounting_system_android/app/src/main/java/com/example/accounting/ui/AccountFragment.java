@@ -109,12 +109,56 @@ public class AccountFragment extends Fragment {
      * 科目数据类
      */
     static class AccountItem {
-        String code;
-        String name;
+        String code;        // 科目代码
+        String name;        // 科目名称
+        String type;        // 科目类型（资产/负债/所有者权益/收入/费用）
+        double balance;     // 余额
+        String direction;   // 余额方向（借/贷）
         
         AccountItem(String code, String name) {
             this.code = code;
             this.name = name;
+            this.type = getAccountType(code);
+            this.balance = 0.0;
+            this.direction = getAccountDirection(code);
+        }
+        
+        AccountItem(String code, String name, String type, double balance, String direction) {
+            this.code = code;
+            this.name = name;
+            this.type = type;
+            this.balance = balance;
+            this.direction = direction;
+        }
+        
+        // 根据科目代码判断科目类型
+        private String getAccountType(String code) {
+            if (code == null || code.isEmpty()) return "未知";
+            char first = code.charAt(0);
+            switch (first) {
+                case '1': return "资产";
+                case '2': return "负债";
+                case '3': return "所有者权益";
+                case '4': return "收入";
+                case '5': return "费用";
+                default: return "未知";
+            }
+        }
+        
+        // 根据科目代码判断余额方向
+        private String getAccountDirection(String code) {
+            if (code == null || code.isEmpty()) return "借";
+            char first = code.charAt(0);
+            // 资产、费用类为借方余额
+            // 负债、所有者权益、收入类为贷方余额
+            return (first == '1' || first == '5') ? "借" : "贷";
+        }
+        
+        @NonNull
+        @Override
+        public String toString() {
+            return String.format("%s %s\n类型: %s | 余额: %.2f | 方向: %s", 
+                code, name, type, balance, direction);
         }
     }
     
@@ -143,10 +187,17 @@ public class AccountFragment extends Fragment {
             AccountItem item = data.get(position);
             TextView text1 = holder.itemView.findViewById(android.R.id.text1);
             TextView text2 = holder.itemView.findViewById(android.R.id.text2);
+            
+            // 第一行：科目代码和名称
             text1.setText(item.code + " - " + item.name);
-            text2.setText("点击编辑 | 长按删除");
             text1.setTextSize(16);
+            text1.setTextColor(0xFF000000);
+            
+            // 第二行：类型、余额、方向
+            text2.setText(String.format("类型: %s | 余额: %.2f | 方向: %s", 
+                item.type, item.balance, item.direction));
             text2.setTextSize(12);
+            text2.setTextColor(0xFF666666);
             
             // 点击编辑
             holder.itemView.setOnClickListener(v -> fragment.showEditDialog(position));
