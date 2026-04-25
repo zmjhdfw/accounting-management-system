@@ -12,21 +12,25 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.accounting.R;
+import com.example.accounting.data.model.AccountItem;
+import com.example.accounting.ui.viewmodel.AccountViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 科目管理Fragment
+ * 使用ViewModel管理数据，观察LiveData自动更新UI，确保数据持久化
  */
 public class AccountFragment extends Fragment {
     
     private RecyclerView recyclerView;
     private TextView emptyView;
     private Button addButton;
-    private List<AccountItem> accountList = new ArrayList<>();
+    private AccountViewModel viewModel;
     private AccountAdapter adapter;
     
     @Nullable
@@ -41,36 +45,50 @@ public class AccountFragment extends Fragment {
         addButton = view.findViewById(R.id.add_account_button);
         
         // 设置RecyclerView
-        adapter = new AccountAdapter(accountList, this);
+        adapter = new AccountAdapter(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
         
         // 添加按钮点击事件
         addButton.setOnClickListener(v -> showAddDialog());
         
-        updateView();
         return view;
+    }
+    
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        
+        // 初始化ViewModel
+        viewModel = new ViewModelProvider(this).get(AccountViewModel.class);
+        
+        // 观察科目数据
+        viewModel.getAccounts().observe(getViewLifecycleOwner(), accounts -> {
+            adapter.setData(accounts);
+            updateView();
+        });
+        
+        // 观察错误消息
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     
     private void showAddDialog() {
         new AddAccountDialog(getContext(), (code, name, type, balance, direction) -> {
-            // 添加科目到列表
-            accountList.add(new AccountItem(code, name, type, balance, direction));
-            adapter.notifyDataSetChanged();
-            updateView();
+            AccountItem account = new AccountItem(code, name, type, balance, direction);
+            viewModel.addAccount(account);
             Toast.makeText(getContext(), "科目添加成功", Toast.LENGTH_SHORT).show();
         }).show();
     }
     
     private void showEditDialog(int position) {
-        AccountItem item = accountList.get(position);
+        AccountItem item = adapter.getItem(position);
         AddAccountDialog dialog = new AddAccountDialog(getContext(), (code, name, type, balance, direction) -> {
-            item.code = code;
-            item.name = name;
-            item.type = type;
-            item.balance = balance;
-            item.direction = direction;
-            adapter.notifyDataSetChanged();
+            AccountItem updated = new AccountItem(code, name, type, balance, direction);
+            viewModel.updateAccount(updated);
             Toast.makeText(getContext(), "科目修改成功", Toast.LENGTH_SHORT).show();
         });
         dialog.show();
@@ -79,25 +97,24 @@ public class AccountFragment extends Fragment {
             EditText codeEdit = dialog.findViewById(R.id.account_code_edit);
             EditText nameEdit = dialog.findViewById(R.id.account_name_edit);
             EditText balanceEdit = dialog.findViewById(R.id.account_balance_edit);
-            codeEdit.setText(item.code);
-            nameEdit.setText(item.name);
+            codeEdit.setText(item.getCode());
+            nameEdit.setText(item.getName());
             // 格式化余额，避免科学计数法
-            if (item.balance == (long) item.balance) {
-                balanceEdit.setText(String.format("%.0f", item.balance));
+            if (item.getBalance() == (long) item.getBalance()) {
+                balanceEdit.setText(String.format("%.0f", item.getBalance()));
             } else {
-                balanceEdit.setText(String.format("%.2f", item.balance));
+                balanceEdit.setText(String.format("%.2f", item.getBalance()));
             }
         });
     }
     
     private void deleteAccount(int position) {
+        AccountItem item = adapter.getItem(position);
         new AlertDialog.Builder(getContext())
             .setTitle("确认删除")
-            .setMessage("确定要删除科目 " + accountList.get(position).code + " 吗？")
+            .setMessage("确定要删除科目 " + item.getCode() + " 吗？")
             .setPositiveButton("删除", (d, w) -> {
-                accountList.remove(position);
-                adapter.notifyDataSetChanged();
-                updateView();
+                viewModel.deleteAccount(item.getCode());
                 Toast.makeText(getContext(), "科目已删除", Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("取消", null)
@@ -105,7 +122,7 @@ public class AccountFragment extends Fragment {
     }
     
     private void updateView() {
-        if (accountList.isEmpty()) {
+        if (adapter.getItemCount() == 0) {
             emptyView.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
             emptyView.setText("暂无科目数据\n\n点击上方\"添加科目\"按钮添加\n\n示例科目：\n• 1001 库存现金\n• 1002 银行存款\n• 1101 短期投资");
@@ -116,72 +133,29 @@ public class AccountFragment extends Fragment {
     }
     
     /**
-     * 科目数据类
-     */
-    static class AccountItem {
-        String code;        // 科目代码
-        String name;        // 科目名称
-        String type;        // 科目类型（资产/负债/所有者权益/收入/费用）
-        double balance;     // 余额
-        String direction;   // 余额方向（借/贷）
-        
-        AccountItem(String code, String name) {
-            this.code = code;
-            this.name = name;
-            this.type = getAccountType(code);
-            this.balance = 0.0;
-            this.direction = getAccountDirection(code);
-        }
-        
-        AccountItem(String code, String name, String type, double balance, String direction) {
-            this.code = code;
-            this.name = name;
-            this.type = type;
-            this.balance = balance;
-            this.direction = direction;
-        }
-        
-        // 根据科目代码判断科目类型
-        private String getAccountType(String code) {
-            if (code == null || code.isEmpty()) return "未知";
-            char first = code.charAt(0);
-            switch (first) {
-                case '1': return "资产";
-                case '2': return "负债";
-                case '3': return "所有者权益";
-                case '4': return "收入";
-                case '5': return "费用";
-                default: return "未知";
-            }
-        }
-        
-        // 根据科目代码判断余额方向
-        private String getAccountDirection(String code) {
-            if (code == null || code.isEmpty()) return "借";
-            char first = code.charAt(0);
-            // 资产、费用类为借方余额
-            // 负债、所有者权益、收入类为贷方余额
-            return (first == '1' || first == '5') ? "借" : "贷";
-        }
-        
-        @NonNull
-        @Override
-        public String toString() {
-            return String.format("%s %s\n类型: %s | 余额: %.2f | 方向: %s", 
-                code, name, type, balance, direction);
-        }
-    }
-    
-    /**
      * 科目列表适配器
      */
     private static class AccountAdapter extends RecyclerView.Adapter<AccountAdapter.ViewHolder> {
-        private List<AccountItem> data;
+        private List<AccountItem> data = new ArrayList<>();
         private AccountFragment fragment;
         
-        AccountAdapter(List<AccountItem> data, AccountFragment fragment) {
-            this.data = data;
+        AccountAdapter(AccountFragment fragment) {
             this.fragment = fragment;
+        }
+        
+        /**
+         * 设置数据
+         */
+        public void setData(List<AccountItem> newData) {
+            this.data = newData != null ? newData : new ArrayList<>();
+            notifyDataSetChanged();
+        }
+        
+        /**
+         * 获取指定位置的数据项
+         */
+        public AccountItem getItem(int position) {
+            return data.get(position);
         }
         
         @NonNull
@@ -199,13 +173,13 @@ public class AccountFragment extends Fragment {
             TextView text2 = holder.itemView.findViewById(android.R.id.text2);
             
             // 第一行：科目代码和名称
-            text1.setText(item.code + " - " + item.name);
+            text1.setText(item.getCode() + " - " + item.getName());
             text1.setTextSize(16);
             text1.setTextColor(0xFF000000);
             
             // 第二行：类型、余额、方向
             text2.setText(String.format("类型: %s | 余额: %.2f | 方向: %s", 
-                item.type, item.balance, item.direction));
+                item.getType(), item.getBalance(), item.getDirection()));
             text2.setTextSize(12);
             text2.setTextColor(0xFF666666);
             
